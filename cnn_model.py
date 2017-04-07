@@ -11,7 +11,6 @@ import svhn_input
 # variables
 n_classes = svhn_input.n_classes
 imSize = svhn_input.imSize
-imPixels = svhn_input.imPixels
 batch_size = svhn_input.batch_size
 
 # tf graph input
@@ -32,16 +31,16 @@ def convolutional_neural_network(x):
         # 5x5 convolution, 3 channels, 64 outputs
         'W_conv1': tf.Variable(tf.truncated_normal([5,5,3,32], stddev=0.05)),
         
-        # 5x5 convolution, 64 inputs, 64 outputs
+        # 5x5 convolution, 32 inputs, 64 outputs
         'W_conv2': tf.Variable(tf.truncated_normal([5,5,32,64], stddev=0.05)),
         
-        # fully connected layer, 8x8x64 inputs, 384 outputs
-        'W_fc3': tf.Variable(tf.truncated_normal([8*8*64,512], stddev=0.04)),
+        # fully connected layer, 8x8x64 inputs, 512 outputs
+        'W_fc3': tf.Variable(tf.truncated_normal([8*8*64,512], stddev=0.05)),
         
-        # fully connected layer, 384 inputs, 192 outputs
-        'W_fc4': tf.Variable(tf.truncated_normal([512,256], stddev=0.04)),
+        # fully connected layer, 512 inputs, 256 outputs
+        'W_fc4': tf.Variable(tf.truncated_normal([512,256], stddev=0.05)),
                                                  
-        # 192 inputs, 10 outputs (class prediction)
+        # 256 inputs, 10 outputs (class prediction)
         'out': tf.Variable(tf.truncated_normal([256, n_classes], stddev=1/256.0))
     }
     
@@ -59,10 +58,12 @@ def convolutional_neural_network(x):
     # convolution layer 1 followed by pooling
     conv1 = tf.nn.relu(conv2d(x, weights['W_conv1']) + biases['b_conv1'])
     pool1 = maxpool2d(conv1)
+    # local response normalization 1
     #norm1 = tf.nn.lrn(pool1, 4, bias=1.0, alpha=0.001/9.0, beta=0.75)
     
     # convolution layer 2 followed by pooling
     conv2 = tf.nn.relu(conv2d(pool1, weights['W_conv2']) + biases['b_conv2'])
+    # local response normalization 2
     #norm2 = tf.nn.lrn(conv2, 4, bias=1.0, alpha=0.001/9.0, beta=0.75)
     pool2 = maxpool2d(conv2)
     

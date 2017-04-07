@@ -17,11 +17,11 @@ def train():
     y = cnn_model.y
     batch_size = svhn_input.batch_size
     global_step = tf.Variable(0, name='global_step', trainable=False)
-    initial_lr = 0.01
+    initial_lr = 0.1
     
     prediction = cnn_model.convolutional_neural_network(x)
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=prediction))
-    lr = tf.train.exponential_decay(initial_lr, global_step, decay_steps=1000, decay_rate=0.1, staircase=True)
+    lr = tf.train.exponential_decay(initial_lr, global_step, decay_steps=256, decay_rate=0.1, staircase=True)
     optimizer = tf.train.GradientDescentOptimizer(lr).minimize(cost, global_step)
     correct = tf.equal(tf.argmax(prediction,1), tf.argmax(y,1))
     accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
@@ -43,7 +43,8 @@ def train():
             print('Epoch', epoch+1, 'completed out of', n_epochs, 'loss:', epoch_loss)
             randsel = np.random.randint(1, X_train.shape[3], batch_size)
             train_accuracy = accuracy.eval(feed_dict={x: X_train[:,:,:,randsel], y: y_train[randsel,:]})
-            print("Training accuracy", train_accuracy)
+            print("Training accuracy", train_accuracy, 'with learning rate', lr.eval())
+            #lr = tf.cond(tf.less(tf.abs(prev_cost - cost), 0.1), lambda: lr*0.9, lambda: lr)
         
         #print('Test Accuracy:', accuracy.eval({x:X_test, y:y_test}))
 

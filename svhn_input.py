@@ -29,7 +29,6 @@ y_test = np.reshape(y_test, [y_test.shape[0], 10])
 del mat_train, mat_test
 
 imSize = 32
-imPixels = imSize * imSize * 3
 n_classes = 10
-batch_size = 128
+batch_size = 256
 
