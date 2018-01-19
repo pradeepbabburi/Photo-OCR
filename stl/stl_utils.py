@@ -25,17 +25,37 @@ def softICA(W, x, params):
     Wgrad = l2rowScaledg(W_old, W, Wgrad, 1)
     return cost, Wgrad
 
+def softICA_lbfgs(W, *args):
+    
+    x = args[0]
+    lambd = args[1]
+    epsilon = args[2]
+    # project weights to norm ball (prevents degenerate bases)
+    W_old = W
+    W = l2rowScaled(W, 1)
+    L1 = np.matmul(W, x)
+    L1smooth = np.sqrt(L1**2 + epsilon)
+    
+    # reconstruction
+    L2 = np.matmul(W.T, L1) - x
+    cost = (lambd*np.sum(L1smooth)) + (0.5*np.sum(L2**2))         # ica cost
+    grad_1 = np.matmul(np.matmul(W, 2*L2), x.T) + (2*np.matmul(L1, L2.T))   # gradients
+    grad_2 = np.matmul(L1/L1smooth, x.T)
+    Wgrad = (0.5*grad_1) + (lambd*grad_2)
+    Wgrad = l2rowScaledg(W_old, W, Wgrad, 1)
+    return cost, Wgrad
+
 def feedForwardRICA(filterDim, poolDim, numFilters, images, W, params):
     """
   feedfowardRICA Returns the convolution of the features given by W with
-  the given images. It should be very similar to cnnConvolve.m+cnnPool.m 
-  in the CNN exercise, except that there is no bias term b, and the pooling
-  is RICA-style square-square-root pooling instead of average pooling.
+  the given images. Convolve and pool every image filter pair. 
+  There is no bias term b, and the pooling is RICA-style 
+  square-square-root pooling instead of average or max pooling.
  
   Parameters:
    filterDim - filter (feature) dimension
    numFilters - number of feature maps
-   images - large images to convolve with, matrix in the form
+   images - large images to convolve with, tensor in the form
             images(r, c, image number)
    W    - W should be the weights learnt using RICA
           W is of shape (filterDim,filterDim,numFilters)
@@ -49,6 +69,7 @@ def feedForwardRICA(filterDim, poolDim, numFilters, images, W, params):
     convDim = imageDim - filterDim  + 1
     features = np.zeros(convDim/poolDim, convDim/poolDim, numFilters, numImages)
     poolMat = np.ones(poolDim)
+    
     # convolve every image with every filter
     for imageNum in range(numImages):
         for filterNum in range(numFilters):
@@ -108,7 +129,7 @@ def random_mini_batches(X, mini_batch_size = 64, seed = 0):
     Arguments:
     X -- input data, of shape (number of examples, input size)
     mini_batch_size - size of the mini-batches, integer
-    seed -- this is only for the purpose of grading, so that you're "random minibatches are the same as ours.
+    seed -- to be consistent with the results
     
     Returns:
     mini_batches of X -- (mini_batch_X)
